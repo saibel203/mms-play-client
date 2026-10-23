@@ -1,0 +1,6 @@
+<div class="score-viewer__viewport" #viewport>
+  <div class="score-viewer__surface" #surface></div>
+</div>
+@if (busy()) {
+  <div class="score-viewer__overlay">Rendering…</div>
+}

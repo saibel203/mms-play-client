@@ -1,0 +1,14 @@
+<label
+  class="zone"
+  [class.dragging]="dragging()"
+  [class.compact]="compact()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="dragging.set(false)"
+  (drop)="onDrop($event)"
+>
+  <input type="file" [accept]="accept()" (change)="onInputChange($event)" />
+  <span class="title">{{ label() }}</span>
+  @if (!compact() && hint()) {
+    <span class="hint">{{ hint() }}</span>
+  }
+</label>

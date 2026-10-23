@@ -1,0 +1,50 @@
+<h2 class="heading">Instruments</h2>
+<ul class="list">
+  @for (track of tracks(); track track.index) {
+    <li class="track" [class.visible]="track.isVisible" [style.--track-color]="track.color">
+      <div class="row">
+        <button
+          type="button"
+          class="name"
+          [title]="track.isVisible ? 'Hide from score' : 'Show in score'"
+          (click)="visibilityToggled.emit(track.index)"
+          (dblclick)="showOnly.emit(track.index)"
+        >
+          <span class="swatch"></span>
+          {{ track.name }}
+        </button>
+        <button
+          type="button"
+          class="flag"
+          [class.active]="track.isMute"
+          title="Mute"
+          (click)="muteChanged.emit({ index: track.index, value: !track.isMute })"
+        >
+          M
+        </button>
+        <button
+          type="button"
+          class="flag solo"
+          [class.active]="track.isSolo"
+          title="Solo"
+          (click)="soloChanged.emit({ index: track.index, value: !track.isSolo })"
+        >
+          S
+        </button>
+      </div>
+      <label class="volume">
+        <span class="sr-only">{{ track.name }} volume</span>
+        <input
+          type="range"
+          min="0"
+          max="150"
+          step="5"
+          [value]="track.volume * 100"
+          (input)="onVolumeInput(track.index, $event)"
+        />
+        <span class="value">{{ track.volume * 100 | number: '1.0-0' }}%</span>
+      </label>
+    </li>
+  }
+</ul>
+<p class="tip">Click a name to show / hide it in the score, double-click to show only it.</p>

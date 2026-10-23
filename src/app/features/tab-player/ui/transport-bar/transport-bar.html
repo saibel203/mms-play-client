@@ -1,0 +1,88 @@
+<div class="group">
+  <button
+    type="button"
+    class="btn primary"
+    [disabled]="!canPlay()"
+    [title]="isPlaying() ? 'Pause (Space)' : 'Play (Space)'"
+    (click)="playPause.emit()"
+  >
+    {{ isPlaying() ? '❚❚' : '▶' }}
+  </button>
+  <button type="button" class="btn" [disabled]="!canPlay()" title="Stop" (click)="stop.emit()">
+    ■
+  </button>
+</div>
+
+<div class="group seek">
+  <span class="time">{{ currentTime() }}</span>
+  <label class="grow">
+    <span class="sr-only">Position</span>
+    <input
+      type="range"
+      min="0"
+      [max]="position().endMs"
+      [value]="position().currentMs"
+      [disabled]="!canPlay()"
+      (change)="onSeek($event)"
+    />
+  </label>
+  <span class="time">{{ endTime() }}</span>
+</div>
+
+<div class="group">
+  <label class="field">
+    Speed
+    <select [value]="speed()" (change)="onSpeed($event)">
+      @for (preset of speedPresets; track preset) {
+        <option [value]="preset" [selected]="preset === speed()">{{ preset * 100 }}%</option>
+      }
+    </select>
+  </label>
+  @if (tempo()) {
+    <span class="badge" title="Current tempo">♩ = {{ tempo() | number: '1.0-0' }}</span>
+  }
+</div>
+
+<div class="group">
+  <button
+    type="button"
+    class="btn toggle"
+    [class.active]="isLooping()"
+    title="Loop (select bars in the score with the mouse to loop a part)"
+    (click)="loopChange.emit(!isLooping())"
+  >
+    ⟳ Loop
+  </button>
+  @if (hasRange()) {
+    <button type="button" class="btn" title="Clear selection" (click)="clearRange.emit()">✕</button>
+  }
+  <button
+    type="button"
+    class="btn toggle"
+    [class.active]="metronome()"
+    title="Metronome"
+    (click)="metronomeChange.emit(!metronome())"
+  >
+    Metronome
+  </button>
+  <button
+    type="button"
+    class="btn toggle"
+    [class.active]="countIn()"
+    title="Count-in before playback"
+    (click)="countInChange.emit(!countIn())"
+  >
+    Count-in
+  </button>
+</div>
+
+<label class="group field">
+  Volume
+  <input
+    type="range"
+    min="0"
+    max="100"
+    [value]="masterVolume() * 100"
+    (input)="onMasterVolume($event)"
+  />
+</label>

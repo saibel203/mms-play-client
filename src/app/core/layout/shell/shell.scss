@@ -1,0 +1,30 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  flex: 0 0 var(--header-height);
+  padding: 0 20px;
+  background: var(--color-text);
+}
+
+.brand {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+
+  span {
+    color: #8fb3ff;
+  }
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+}

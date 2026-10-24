@@ -1,0 +1,24 @@
+@let entry = check();
+
+<article class="card" [class]="'status-' + entry.status.toLowerCase()">
+  <header class="head">
+    <span class="dot" aria-hidden="true"></span>
+    <h3 class="name">{{ entry.name }}</h3>
+    <span class="status">{{ entry.status }}</span>
+  </header>
+
+  @if (entry.description) {
+    <p class="description">{{ entry.description }}</p>
+  }
+
+  @if (data().length) {
+    <dl class="data">
+      @for (item of data(); track item.key) {
+        <dt>{{ item.key }}</dt>
+        <dd>{{ item.value }}</dd>
+      }
+    </dl>
+  }
+
+  <footer class="duration">{{ entry.durationMs | number: '1.0-0' }} ms</footer>
+</article>

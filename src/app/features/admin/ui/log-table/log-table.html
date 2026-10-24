@@ -1,0 +1,29 @@
+<ul class="rows" [class.busy]="busy()">
+  @for (entry of entries(); track entry.id) {
+    <li>
+      <button
+        type="button"
+        class="row"
+        [class.selected]="entry.id === selectedId()"
+        [attr.aria-current]="entry.id === selectedId() ? 'true' : null"
+        (click)="entrySelected.emit(entry.id)"
+      >
+        <time
+          class="time"
+          [attr.datetime]="entry.timeStamp"
+          [title]="entry.timeStamp | date: 'yyyy-MM-dd HH:mm:ss.SSS'"
+        >
+          {{ entry.timeStamp | date: 'MMM d, HH:mm:ss' }}
+        </time>
+        <app-level-badge [level]="entry.level" />
+        <span class="source" [title]="entry.sourceContext ?? ''">{{
+          shortSource(entry.sourceContext)
+        }}</span>
+        <span class="message">{{ entry.message }}</span>
+        @if (entry.exception) {
+          <span class="exception" title="Has an exception">⚠</span>
+        }
+      </button>
+    </li>
+  }
+</ul>

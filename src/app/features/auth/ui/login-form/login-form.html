@@ -1,0 +1,44 @@
+<form
+  class="form"
+  [attr.aria-busy]="busy()"
+  (submit)="onSubmit($event, userName.value, password.value, rememberMe.checked)"
+>
+  <label class="field">
+    <span>User name</span>
+    <input
+      #userName
+      type="text"
+      name="username"
+      autocomplete="username"
+      maxlength="256"
+      required
+      [disabled]="busy()"
+    />
+  </label>
+
+  <label class="field">
+    <span>Password</span>
+    <input
+      #password
+      type="password"
+      name="password"
+      autocomplete="current-password"
+      maxlength="128"
+      required
+      [disabled]="busy()"
+    />
+  </label>
+
+  <label class="remember">
+    <input #rememberMe type="checkbox" name="rememberMe" [disabled]="busy()" />
+    <span>Keep me signed in</span>
+  </label>
+
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  <button type="submit" class="submit" [disabled]="busy()">
+    {{ busy() ? 'Signing in…' : 'Sign in' }}
+  </button>
+</form>

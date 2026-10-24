@@ -1,0 +1,7 @@
+<main class="card">
+  <div class="brand">MMS<span>Play</span></div>
+  <h1>Sign in</h1>
+  <p class="lead">Use the account your administrator gave you.</p>
+
+  <app-login-form [busy]="busy()" [error]="error()" (submitted)="onSubmit($event)" />
+</main>

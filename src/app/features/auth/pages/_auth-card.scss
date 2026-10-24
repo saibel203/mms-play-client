@@ -1,0 +1,31 @@
+// Layout shared by the screens of the auth feature (login, no access): a centred card
+// on the page background, outside the app shell.
+
+@mixin auth-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px 16px;
+}
+
+@mixin auth-card {
+  width: min(400px, 100%);
+  padding: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+@mixin auth-brand {
+  margin-bottom: 20px;
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+
+  span {
+    color: var(--color-accent);
+  }
+}

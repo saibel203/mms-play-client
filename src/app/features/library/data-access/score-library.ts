@@ -1,11 +1,11 @@
 import { HttpStatusCode } from '@angular/common/http';
-import { Injectable, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { isHttpStatus, toErrorMessage } from '@core/api/api-error';
-import { PagedResult } from '@core/api/api.models';
 import { ScoreDto } from '@core/api/scores/score.models';
 import { ScoresApi } from '@core/api/scores/scores-api';
+import { keepPreviousValue } from '@shared/utils/keep-previous-value';
 import { LIBRARY_PAGE_SIZE, LibraryFilter } from '../models/library.models';
 
 /**
@@ -30,15 +30,8 @@ export class ScoreLibrary {
     stream: ({ params }) => this.api.list(params),
   });
 
-  /**
-   * The last page that arrived. A resource drops its value when the params change, which would
-   * blank the list for the duration of every request; keeping the previous page avoids the flicker.
-   * Writable, so a deleted score disappears at once instead of after the next response.
-   */
-  private readonly lastPage = linkedSignal<PagedResult<ScoreDto> | undefined, PagedResult<ScoreDto> | undefined>({
-    source: () => (this.response.hasValue() ? this.response.value() : undefined),
-    computation: (page, previous) => page ?? previous?.value,
-  });
+  /** The last page that arrived, so the list does not blank between pages; patched on delete. */
+  private readonly lastPage = keepPreviousValue(this.response);
 
   readonly filter = this._filter.asReadonly();
   readonly scores = computed(() => this.lastPage()?.items ?? []);

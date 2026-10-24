@@ -1,0 +1,44 @@
+@let report = monitor.report();
+
+<div class="page">
+  <section class="top">
+    <h1>Health</h1>
+    <button
+      type="button"
+      class="refresh"
+      [disabled]="monitor.isLoading()"
+      (click)="monitor.refresh()"
+    >
+      {{ monitor.isLoading() ? 'Checking…' : 'Run checks again' }}
+    </button>
+  </section>
+
+  @if (monitor.error(); as error) {
+    <div class="error" role="alert">{{ error }}</div>
+  }
+
+  @if (report) {
+    <div
+      class="summary"
+      [class]="'status-' + report.status.toLowerCase()"
+      [class.busy]="monitor.isLoading()"
+    >
+      <span class="dot" aria-hidden="true"></span>
+      <div class="summary-text">
+        <strong>{{ report.status }}</strong>
+        <span>
+          {{ report.checks.length }} checks in {{ report.totalDurationMs | number: '1.0-0' }} ms ·
+          checked {{ report.checkedAt | date: 'HH:mm:ss' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="checks" [class.busy]="monitor.isLoading()">
+      @for (check of report.checks; track check.name) {
+        <app-health-check-card [check]="check" />
+      }
+    </div>
+  } @else if (monitor.isLoading()) {
+    <p class="placeholder">Running health checks…</p>
+  }
+</div>

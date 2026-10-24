@@ -1,0 +1,63 @@
+@let filter = viewer.filter();
+
+<section class="top">
+  <h1>Logs</h1>
+  @if (!viewer.isFirstLoad() && !viewer.error()) {
+    <span class="count"
+      >{{ viewer.totalCount() | number }}
+      {{ viewer.totalCount() === 1 ? 'entry' : 'entries' }}</span
+    >
+  }
+</section>
+
+<app-log-filters
+  [filter]="filter"
+  [busy]="viewer.isLoading()"
+  (filterChange)="onFilterChange($event)"
+  (refresh)="viewer.refresh()"
+/>
+
+@if (viewer.error(); as error) {
+  <div class="error" role="alert">
+    <span>{{ error }}</span>
+    <button type="button" class="retry" (click)="viewer.refresh()">Retry</button>
+  </div>
+}
+
+<div class="body" [class.with-details]="viewer.selectedId() !== undefined">
+  <div class="list">
+    <div class="scroll">
+      @if (viewer.isFirstLoad()) {
+        <p class="placeholder">Loading logs…</p>
+      } @else if (viewer.entries().length) {
+        <app-log-table
+          [entries]="viewer.entries()"
+          [selectedId]="viewer.selectedId()"
+          [busy]="viewer.isLoading()"
+          (entrySelected)="onEntrySelected($event)"
+        />
+      } @else if (!viewer.error()) {
+        <p class="placeholder">No log entries match these filters.</p>
+      }
+    </div>
+
+    <app-pagination
+      class="pagination"
+      [page]="filter.page"
+      [totalPages]="viewer.totalPages()"
+      [disabled]="viewer.isLoading()"
+      (pageChange)="onPageChange($event)"
+    />
+  </div>
+
+  @if (viewer.selectedId() !== undefined) {
+    <app-log-entry-details
+      class="details"
+      [entry]="viewer.selected()"
+      [loading]="viewer.isSelectedLoading()"
+      [error]="viewer.selectedError()"
+      (closed)="onDetailsClosed()"
+      (sourceFiltered)="onSourceFiltered($event)"
+    />
+  }
+</div>

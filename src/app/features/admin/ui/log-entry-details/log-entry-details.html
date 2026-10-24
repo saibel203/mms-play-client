@@ -1,0 +1,70 @@
+@let current = entry();
+
+<section class="panel" aria-label="Log entry">
+  <header class="head">
+    @if (current) {
+      <app-level-badge [level]="current.level" />
+      <time [attr.datetime]="current.timeStamp">
+        {{ current.timeStamp | date: 'yyyy-MM-dd HH:mm:ss.SSS' }}
+      </time>
+      <span class="id">#{{ current.id }}</span>
+    } @else {
+      <span class="muted">{{ loading() ? 'Loading…' : 'Log entry' }}</span>
+    }
+    <button type="button" class="close" title="Close" aria-label="Close" (click)="closed.emit()">
+      ×
+    </button>
+  </header>
+
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  @if (current) {
+    <div class="body" [class.busy]="loading()">
+      <p class="message">{{ current.message }}</p>
+
+      @if (current.sourceContext; as source) {
+        <div class="section">
+          <h3>Source</h3>
+          <code class="value">{{ source }}</code>
+          <button type="button" class="action" (click)="sourceFiltered.emit(source)">
+            Only this source
+          </button>
+        </div>
+      }
+
+      @if (current.messageTemplate) {
+        <div class="section">
+          <h3>Template</h3>
+          <code class="value">{{ current.messageTemplate }}</code>
+        </div>
+      }
+
+      @if (current.exception) {
+        <div class="section">
+          <h3>Exception</h3>
+          <pre class="exception">{{ current.exception }}</pre>
+        </div>
+      }
+
+      @if (properties().length) {
+        <div class="section">
+          <h3>Properties</h3>
+          <dl class="properties">
+            @for (property of properties(); track property.key) {
+              <dt>{{ property.key }}</dt>
+              <dd>
+                @if (property.multiline) {
+                  <pre>{{ property.value }}</pre>
+                } @else {
+                  {{ property.value }}
+                }
+              </dd>
+            }
+          </dl>
+        </div>
+      }
+    </div>
+  }
+</section>

@@ -18,18 +18,20 @@
     />
   </section>
 
-  <app-upload-panel
-    [step]="uploader.step()"
-    [draft]="uploader.draft()"
-    [error]="uploader.error()"
-    [lastResult]="uploader.lastResult()"
-    [accept]="accept"
-    (fileSelected)="onFileSelected($event)"
-    (draftChange)="onDraftChange($event)"
-    (submitted)="onUploadSubmitted()"
-    (cancelled)="uploader.cancel()"
-    (resultDismissed)="uploader.dismissResult()"
-  />
+  @if (canManage()) {
+    <app-upload-panel
+      [step]="uploader.step()"
+      [draft]="uploader.draft()"
+      [error]="uploader.error()"
+      [lastResult]="uploader.lastResult()"
+      [accept]="accept"
+      (fileSelected)="onFileSelected($event)"
+      (draftChange)="onDraftChange($event)"
+      (submitted)="onUploadSubmitted()"
+      (cancelled)="uploader.cancel()"
+      (resultDismissed)="uploader.dismissResult()"
+    />
+  }
 
   @if (library.error(); as error) {
     <div class="error" role="alert">
@@ -44,6 +46,7 @@
     <app-score-list
       [scores]="library.scores()"
       [busy]="library.isLoading()"
+      [canDelete]="canManage()"
       (deleteRequested)="library.requestDelete($event)"
     />
   } @else if (!library.error()) {
@@ -52,8 +55,10 @@
         Nothing matches “{{ filter.search }}”.
       } @else if (filter.page > 1) {
         This page is empty.
-      } @else {
+      } @else if (canManage()) {
         The library is empty. Upload the first score above.
+      } @else {
+        The library is empty. Scores will appear here once an administrator uploads them.
       }
     </p>
   }

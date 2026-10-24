@@ -1,0 +1,7 @@
+<span class="user">
+  <span class="name">{{ userName() }}</span>
+  @if (role(); as role) {
+    <span class="role">{{ role }}</span>
+  }
+</span>
+<button type="button" class="sign-out" [disabled]="busy()" (click)="signOut.emit()">Sign out</button>

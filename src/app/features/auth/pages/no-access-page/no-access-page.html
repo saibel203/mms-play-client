@@ -1,0 +1,15 @@
+<main class="card">
+  <div class="brand">MMS<span>Play</span></div>
+  <h1>Waiting for approval</h1>
+  <p class="lead">
+    You are signed in as <strong>{{ session.user()?.userName }}</strong>, but an administrator has not
+    given your account access yet. Ask them to approve it, then check again.
+  </p>
+
+  <div class="actions">
+    <button type="button" class="btn" [disabled]="busy()" (click)="logout()">Sign out</button>
+    <button type="button" class="btn primary" [disabled]="busy()" (click)="checkAgain()">
+      Check again
+    </button>
+  </div>
+</main>

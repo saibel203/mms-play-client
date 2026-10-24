@@ -1,0 +1,125 @@
+:host {
+  display: block;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+  }
+}
+
+.refresh {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-accent);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.error {
+  padding: 10px 14px;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.summary {
+  --status-color: var(--color-text-muted);
+  --status-soft: var(--color-surface-muted);
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--status-color);
+  border-radius: var(--radius-md);
+  background: var(--status-soft);
+
+  &.status-healthy {
+    --status-color: var(--color-success);
+    --status-soft: var(--color-success-soft);
+  }
+
+  &.status-degraded {
+    --status-color: var(--color-warning);
+    --status-soft: var(--color-warning-soft);
+  }
+
+  &.status-unhealthy {
+    --status-color: var(--color-danger);
+    --status-soft: var(--color-danger-soft);
+  }
+}
+
+.dot {
+  flex: 0 0 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--status-color);
+}
+
+.summary-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    color: var(--status-color);
+    font-size: 18px;
+  }
+
+  span {
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.summary,
+.checks {
+  transition: opacity 0.15s;
+
+  &.busy {
+    opacity: 0.55;
+  }
+}
+
+.placeholder {
+  margin: 32px 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}

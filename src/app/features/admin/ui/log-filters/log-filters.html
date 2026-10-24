@@ -1,0 +1,47 @@
+@let current = filter();
+
+<div class="bar">
+  <div class="levels" role="group" aria-label="Minimum level">
+    @for (option of levels; track option.label) {
+      <button
+        type="button"
+        class="level"
+        [class.active]="option.value === current.level"
+        [attr.aria-pressed]="option.value === current.level"
+        [title]="option.value ? option.value + ' and more severe' : 'Every level'"
+        (click)="filterChange.emit({ level: option.value })"
+      >
+        {{ option.label }}
+      </button>
+    }
+  </div>
+
+  <label class="period">
+    <span class="sr-only">Period</span>
+    <select [value]="current.period" (change)="onPeriodChange($event)">
+      @for (period of periods; track period.value) {
+        <option [value]="period.value">{{ period.label }}</option>
+      }
+    </select>
+  </label>
+
+  <app-search-box
+    class="source"
+    placeholder="Source: namespace or class"
+    [maxLength]="256"
+    [value]="current.source"
+    (termChange)="filterChange.emit({ source: $event })"
+  />
+
+  <app-search-box
+    class="search"
+    placeholder="Search message or exception"
+    [maxLength]="200"
+    [value]="current.search"
+    (termChange)="filterChange.emit({ search: $event })"
+  />
+
+  <button type="button" class="refresh" [disabled]="busy()" (click)="refresh.emit()">
+    {{ busy() ? 'Loading…' : 'Refresh' }}
+  </button>
+</div>

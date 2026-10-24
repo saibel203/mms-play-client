@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { Session } from '@core/auth/session';
 import { SCORE_FILE_ACCEPT } from '@shared/score-file/score-file';
 import { ConfirmDialog } from '@shared/ui/confirm-dialog/confirm-dialog';
 import { Pagination } from '@shared/ui/pagination/pagination';
@@ -15,6 +16,8 @@ import { DraftChange, UploadPanel } from '../../ui/upload-panel/upload-panel';
  * Smart (container) component of the library. Owns the stores and is the only place that
  * talks to the router: the URL (?page=&q=) is the source of truth for what the list shows,
  * so back / forward, reload and shared links all restore the same view.
+ *
+ * Everyone browses; uploading and deleting are shown to admins only (the API enforces it too).
  */
 @Component({
   selector: 'app-library-page',
@@ -31,6 +34,7 @@ export class LibraryPage {
   private readonly route = inject(ActivatedRoute);
 
   protected readonly accept = SCORE_FILE_ACCEPT;
+  protected readonly canManage = inject(Session).isAdmin;
 
   constructor() {
     // URL → store. UI events never touch the store's filter directly, they change the URL.

@@ -1,9 +1,26 @@
+@let user = session.user();
+
 <header class="header">
   <a class="brand" routerLink="/">MMS<span>Play</span></a>
   <nav class="nav">
     <a routerLink="/library" routerLinkActive="active">Library</a>
+    @if (session.isAdmin()) {
+      <a routerLink="/admin/logs" routerLinkActive="active">Logs</a>
+      <a routerLink="/admin/health" routerLinkActive="active">Health</a>
+      <a routerLink="/admin/jobs" routerLinkActive="active">Jobs</a>
+    }
   </nav>
-  <app-theme-toggle class="theme" [isDark]="theme.isDark()" (toggled)="theme.toggle()" />
+  <div class="end">
+    <app-theme-toggle [isDark]="theme.isDark()" (toggled)="theme.toggle()" />
+    @if (user) {
+      <app-user-menu
+        [userName]="user.userName"
+        [role]="roleLabel()"
+        [busy]="signingOut()"
+        (signOut)="onSignOut()"
+      />
+    }
+  </div>
 </header>
 <main class="content">
   <router-outlet />

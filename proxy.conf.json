@@ -4,5 +4,11 @@
     "secure": false,
     "changeOrigin": true,
     "logLevel": "info"
+  },
+  "/hangfire": {
+    "target": "https://localhost:7141",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
   }
 }

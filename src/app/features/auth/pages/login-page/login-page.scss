@@ -1,0 +1,23 @@
+@use '../auth-card' as *;
+
+:host {
+  @include auth-screen;
+}
+
+.card {
+  @include auth-card;
+}
+
+.brand {
+  @include auth-brand;
+}
+
+h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.lead {
+  margin: 4px 0 20px;
+  color: var(--color-text-muted);
+}

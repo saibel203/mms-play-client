@@ -10,13 +10,16 @@ Angular 22, standalone-компоненти, signals, zoneless. Документ
 src/app/
 ├── core/          інфраструктура застосунку, одна копія на весь app
 │   ├── api/       HTTP-клієнти бекенду + транспортні моделі + обробка помилок
-│   ├── layout/    каркас (Shell: шапка + router-outlet, ThemeToggle)
+│   ├── auth/      Session, ролі, guards, interceptor
+│   ├── layout/    каркас (Shell: шапка + router-outlet, ThemeToggle, UserMenu)
 │   └── theme/     ColorTheme: світла / темна тема
 ├── shared/        перевикористовувані «цеглинки» без бізнес-стану
 │   ├── ui/        тупі компоненти: file-drop-zone, search-box, pagination, confirm-dialog
 │   ├── score-file/знання про файли партитур (розширення, читання тегів)
-│   └── utils/     чисті функції: formatDuration, formatFileSize
+│   └── utils/     formatDuration, formatFileSize, keepPreviousValue (для resource)
 └── features/      вертикальні зрізи функціональності
+    ├── auth/      вхід (/login) і «очікує підтвердження» (/no-access)
+    ├── admin/     сторінки лише для Admin: логи, health, фонові задачі (Hangfire)
     ├── library/   бібліотека: список, пошук, пагінація, завантаження, видалення
     └── tab-player/плеєр партитури за id
 ```
@@ -115,6 +118,12 @@ core/api/
 | `GET /scores/{id}` | `get(id)` | `CurrentScore` |
 | `GET /scores/{id}/content` | `getContent(id)` | `CurrentScore` |
 | `DELETE /scores/{id}` | `delete(id)` | `ScoreLibrary` |
+| `POST /account/login` | `AccountApi.login(...)` | `Session` |
+| `POST /account/logout` | `AccountApi.logout()` | `Session` |
+| `GET /account/me` | `AccountApi.me()` | `Session` (на старті) |
+| `GET /health` | `HealthApi.getReport()` | `HealthMonitor` |
+| `GET /logs?page&pageSize&minLevel&from&to&source&search` | `LogsApi.list(query)` | `LogViewer` |
+| `GET /logs/{id}` | `LogsApi.get(id)` | `LogViewer` |
 
 Новий ендпоінт додається так: модель у `core/api/<area>/*.models.ts` → метод у `<Area>Api` → виклик зі стору фічі.
 
@@ -161,15 +170,12 @@ private readonly response = rxResource({
 - Стани `isLoading()`, `error()`, `hasValue()` та метод `reload()` ресурс дає з коробки.
 - Якщо `params` дорівнює `undefined`, ресурс простоює (`CurrentScore` до виклику `open()`).
 
-### `linkedSignal` проти блимання
-Коли змінюються params, ресурс скидає `value`. Щоб список не зникав на час кожного запиту, `ScoreLibrary` зберігає останню сторінку, що прийшла:
+### `keepPreviousValue` проти блимання
+Коли змінюються params, ресурс скидає `value`. Щоб список не зникав на час кожного запиту, стори списків (`ScoreLibrary`, `LogViewer`) тримають останню сторінку, що прийшла, через `shared/utils/keep-previous-value.ts`:
 ```ts
-private readonly lastPage = linkedSignal({
-  source: () => (this.response.hasValue() ? this.response.value() : undefined),
-  computation: (page, previous) => page ?? previous?.value,
-});
+private readonly lastPage = keepPreviousValue(this.response);   // linkedSignal під капотом
 ```
-Поки вантажиться наступна сторінка, список лише напівпрозорий (`busy`).
+Поки вантажиться наступна сторінка, список лише напівпрозорий (`busy`). Сигнал записуваний, тож `ScoreLibrary` прибирає з нього видалену картку одразу.
 
 ### Коли `effect`, а коли ні
 `effect` використовується **лише для синхронізації з імперативним зовнішнім світом**: передати байти файлу в alphaTab, змінити `document.title`. Для стану, похідного від інших сигналів, використовуються `computed` / `linkedSignal`, а не `effect` + `set`.
@@ -256,20 +262,83 @@ effect: current.content() → player.load(bytes)    // дані → рушій
 
 ---
 
-## 7. Маршрути
+## 7. Маршрути і доступ
 
-```
-/                    → redirect /library
-/library?page&q      → LibraryPage        (lazy: library.routes.ts)
-/player              → redirect /library
-/player/:id          → TabPlayerPage      (lazy: tab-player.routes.ts)
-/**                  → redirect /
-```
-Усі маршрути вкладені в `Shell` (шапка з навігацією).
+| Маршрут | Сторінка | Доступ |
+|---|---|---|
+| `/login` | `LoginPage` (без шапки) | лише неавторизовані (`guestOnly`) |
+| `/no-access` | `NoAccessPage` (без шапки) | авторизовані без ролі (`pendingApprovalOnly`) |
+| `/` | → `/library` | |
+| `/library?page&q` | `LibraryPage` | Admin, Student |
+| `/player/:id` | `TabPlayerPage` | Admin, Student |
+| `/admin` | → `/admin/logs` | Admin |
+| `/admin/logs?level&period&source&q&page&entry` | `LogsPage` | Admin |
+| `/admin/health` | `HealthPage` | Admin |
+| `/admin/jobs` | `JobsPage` | Admin |
+| `/**` | → `/` | |
+
+Усі фічі завантажуються lazy. Сторінки з шапкою вкладені в `Shell`, на якому стоїть `requireRoles(Admin, Student)`. На `/admin` додатково стоїть `requireRoles(Admin)`.
 
 ---
 
-## 8. Стилі і теми
+## 8. Авторизація і ролі
+
+Бекенд використовує **cookie-авторизацію** (ASP.NET Identity, `HttpOnly`, `SameSite=Strict`). Клієнт ніколи не бачить токена: браузер сам зберігає й надсилає cookie, бо `/api` і `/hangfire` віддаються з того самого сайту через proxy.
+
+```
+bootstrap ─► provideAppInitializer ─► Session.restore() ─► GET /account/me
+                                         200 → user        401 → null
+          ─► перша навігація ─► guards читають Session синхронно
+```
+
+| Частина | Де | Що робить |
+|---|---|---|
+| `Roles`, `APP_ROLES` | `core/auth/roles.ts` | ті самі рядки, що `MMS.Play.Contracts.Authorization.Roles` |
+| `Session` | `core/auth/session.ts` | `user`, `isAuthenticated`, `isAdmin`, `isPendingApproval`, `hasRole(...)`; `restore / login / logout / expire` |
+| `requireRoles(...roles)` | `core/auth/auth.guards.ts` | не увійшов → `/login?returnUrl=…`; без ролі → `/no-access`; не та роль → `/` |
+| `guestOnly`, `pendingApprovalOnly` | там само | захищають самі сторінки входу та очікування |
+| `authInterceptor` | `core/auth/auth.interceptor.ts` | 401 на звичайний запит (cookie протух, вихід в іншій вкладці) → `expire()` + `/login?returnUrl=…` |
+
+**Ролі в UI:**
+- **Admin:** усе. Завантаження й видалення в бібліотеці, пункт «Jobs» у шапці, сторінка `/admin/jobs` з Hangfire в iframe.
+- **Student:** лише читання. `UploadPanel` і кнопки видалення не рендеряться (`canManage = session.isAdmin`).
+- **Без ролі:** обліковий запис існує, але адмін ще не підтвердив його (майбутня реєстрація через Telegram). Користувач бачить `/no-access` з кнопками «Check again» (повторний `/me`) і «Sign out».
+
+**Правила:**
+- **Перевірки ролей на клієнті лише косметичні.** Вони вирішують, що *показати*, а справжні права перевіряє API (`[Authorize(Roles = ...)]`, fallback policy).
+- `returnUrl` проходить через `safeReturnUrl`: дозволені лише внутрішні шляхи (`/…`, не `//…`), щоб сторінка входу не стала open redirect.
+- 401 від `/account/*` інтерцептор не чіпає. Для `login` це «невірний пароль», для `me` — «не увійшов».
+- Помилку входу показує `toErrorMessage`: `detail` з бекенду («Invalid user name or password.», «Too many failed attempts…»).
+- Нова сторінка лише для адміна додається в `features/admin/admin.routes.ts` (+ посилання в `shell.html` під `@if (session.isAdmin())`), guard уже стоїть на батьківському маршруті. Інша роль для маршруту задається через `canActivate: [requireRoles(...)]`.
+
+---
+
+## 9. Фіча `admin`
+
+Усе, що тут є, доступне лише Admin: guard стоїть на маршруті `/admin`, а API перевіряє роль сам.
+
+### Логи (`/admin/logs`), у дусі Log Viewer з Umbraco
+```
+LogsPage  (providers: LogViewer)
+├── LogFilters        рівень (All / Debug+ / Info+ / Warning+ / Error+ / Fatal), період, source, пошук, Refresh
+├── LogTable          час · рівень · клас · повідомлення · ⚠ якщо є exception
+├── Pagination
+└── LogEntryDetails   панель праворуч: повідомлення, source, шаблон, exception, properties
+```
+- **Усе в URL**, разом із відкритим записом: `?level=Warning&period=week&source=MMS.Play.Infrastructure&q=timeout&entry=123`. Посиланням можна поділитися, і інший адмін побачить той самий запис.
+- **`LogViewer` має два незалежні ресурси**: список (за фільтром) і деталі (за `entry`). Тому посилання на запис працює, навіть якщо його немає на поточній сторінці списку.
+- **Період відносний** («Last 24 hours»). `from` рахується в `stream` у момент запиту, тож Refresh зсуває вікно до «зараз», і нові записи з'являються зверху.
+- **Список легкий.** Рядки не містять properties: бекенд віддає важкий JSON події лише в `GET /logs/{id}`.
+- **«Only this source»** у деталях фільтрує список за класом запису. Source-фільтр — це префікс, тому підходить і namespace.
+- Текстові фільтри використовують `replaceUrl` (як пошук у бібліотеці), а рівень, період, сторінка й запис додають запис в історію, тож «Назад» працює.
+
+### Health (`/admin/health`)
+`HealthMonitor`: `rxResource` без params завантажується раз при відкритті, «Run checks again» робить `reload()`, і поки іде перевірка, старий звіт лишається на екрані. Зверху показано загальний статус (найгірший з усіх), нижче по картці на кожну перевірку: статус, опис або текст помилки, тривалість і `data` (наприклад, лічильники Hangfire).
+
+### Jobs (`/admin/jobs`)
+Hangfire в iframe через proxy `/hangfire`, див. розділ 8.
+
+## 10. Стилі і теми
 
 - Дизайн-токени зібрані в `src/styles.scss` (`--color-*`, `--radius-*`, `--shadow-*`). Компоненти використовують змінні, а не хардкод кольорів. Виняток — білий текст на кольорових кнопках.
 - Стилі інкапсульовані в компоненті. Виняток — `ScoreViewer` (`ViewEncapsulation.None`), бо alphaTab сам вставляє DOM курсора й виділення.
@@ -289,7 +358,7 @@ TabPlayerPage (effect)      ──► player.setTheme(scheme) ──► SCORE_TH
 
 ---
 
-## 9. Рецепти
+## 11. Рецепти
 
 **Нова фіча** (наприклад, `admin`):
 1. `features/admin/{models,data-access,pages,ui}` + `admin.routes.ts` з `export default [...] satisfies Routes`.
@@ -302,9 +371,12 @@ TabPlayerPage (effect)      ──► player.setTheme(scheme) ──► SCORE_TH
 
 ---
 
-## 10. Обмеження і що далі
+## 12. Обмеження і що далі
 
 - На бекенді немає `PATCH` для партитур. Перейменування з'явиться разом із ним за тим самим шаблоном, що й видалення: метод у `ScoresApi` + команда в `ScoreLibrary`.
 - Після видалення браузер може ще віддавати файл зі свого кешу (`immutable`), але метадані відповідають 404, тому плеєр покаже «Score not found».
-- Авторизації поки немає. Коли з'явиться (Telegram-підтвердження адміном), токен додаватиметься функціональним `HttpInterceptorFn` у `core/api` і реєструватиметься в `provideHttpClient(withFetch(), withInterceptors([...]))`. Фічі змінювати не доведеться.
+- Реєстрації поки немає, облікові записи створює бекенд (`Identity:SeedUsers`). Коли з'явиться реєстрація з підтвердженням через Telegram, сторінка `/register` ляже в `features/auth`. Затвердження означатиме видачу ролі `Student`, а `/no-access` уже вміє це підхопити.
+- Лічильників за рівнями (як кругова діаграма в Umbraco) поки немає, бо API віддає лише сторінки. Для цього потрібен окремий ендпоінт статистики, наприклад `GET /logs/stats?from&to` → `{ level: count }`.
+- Роль, змінену на бекенді, `/me` побачить, лише коли Identity перевалідує cookie (до 30 хвилин) або після повторного входу.
+- `/content` кешується браузером як `private, immutable`. Після виходу інший користувач того самого браузера технічно може отримати файл з кешу.
 - Розмір файлу (10 MB) перевіряє лише сервер. Клієнт показує його помилку через `toErrorMessage`.

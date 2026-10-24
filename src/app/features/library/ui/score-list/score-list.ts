@@ -15,6 +15,8 @@ export class ScoreList {
   readonly scores = input.required<ScoreDto[]>();
   /** Dims the list while the next page is loading. */
   readonly busy = input(false);
+  /** Shows the delete buttons; off for roles that may only read. */
+  readonly canDelete = input(false);
 
   /** Only asks: the owner confirms and deletes. */
   readonly deleteRequested = output<ScoreDto>();

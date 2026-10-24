@@ -1,0 +1,106 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  padding: 16px 20px;
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+  }
+}
+
+.count,
+.placeholder {
+  color: var(--color-text-muted);
+}
+
+.placeholder {
+  margin: 32px 0;
+  text-align: center;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+
+  span {
+    flex: 1;
+  }
+}
+
+.retry {
+  padding: 4px 12px;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-danger);
+  cursor: pointer;
+}
+
+// list and details side by side; the details column only exists while an entry is open
+.body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+
+  &.with-details {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.details {
+  min-height: 0;
+}
+
+// narrow screens: the details go under the list instead of next to it
+@media (width <= 960px) {
+  // the shell does not scroll, so on small screens the page itself does
+  :host {
+    overflow-y: auto;
+  }
+
+  .body {
+    flex: none;
+  }
+
+  .body.with-details {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .scroll {
+    max-height: 60vh;
+  }
+}

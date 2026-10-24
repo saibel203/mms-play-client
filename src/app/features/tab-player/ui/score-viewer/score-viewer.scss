@@ -28,8 +28,8 @@ app-score-viewer {
     right: 12px;
     padding: 4px 10px;
     border-radius: var(--radius-sm);
-    background: var(--color-text);
-    color: #fff;
+    background: var(--color-header-bg);
+    color: var(--color-header-text);
     font-size: 12px;
     pointer-events: none;
   }
@@ -51,4 +51,12 @@ app-score-viewer {
     fill: var(--score-highlight);
     stroke: var(--score-highlight);
   }
+}
+
+// the notation itself is recoloured through alphaTab (SCORE_THEMES), these are the DOM overlays
+:root[data-theme='dark'] app-score-viewer {
+  --score-cursor-bar: rgb(255 242 0 / 10%);
+  --score-cursor-beat: rgb(91 141 239 / 90%);
+  --score-selection: rgb(91 141 239 / 22%);
+  --score-highlight: #7aa5ff;
 }

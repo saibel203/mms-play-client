@@ -2,11 +2,12 @@ import { DecimalPipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import { formatDuration } from '@shared/utils/format-duration';
 import { PlaybackPosition } from '../../models/player.models';
+import { SpeedControl } from '../speed-control/speed-control';
 
 /** Playback controls: play/stop, seek bar, speed, loop, metronome, count-in, master volume. */
 @Component({
   selector: 'app-transport-bar',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, SpeedControl],
   templateUrl: './transport-bar.html',
   styleUrl: './transport-bar.scss',
 })
@@ -32,17 +33,11 @@ export class TransportBar {
   readonly countInChange = output<boolean>();
   readonly masterVolumeChange = output<number>();
 
-  protected readonly speedPresets = [0.25, 0.5, 0.75, 1, 1.25, 1.5];
-
   protected readonly currentTime = computed(() => formatDuration(this.position().currentMs));
   protected readonly endTime = computed(() => formatDuration(this.position().endMs));
 
   protected onSeek(event: Event): void {
     this.seek.emit(Number((event.target as HTMLInputElement).value));
-  }
-
-  protected onSpeed(event: Event): void {
-    this.speedChange.emit(Number((event.target as HTMLSelectElement).value));
   }
 
   protected onMasterVolume(event: Event): void {

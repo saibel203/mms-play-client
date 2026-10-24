@@ -1,0 +1,38 @@
+@if (totalPages() > 1) {
+  <nav class="pagination" aria-label="Pagination">
+    <button
+      type="button"
+      class="btn"
+      [disabled]="disabled() || page() <= 1"
+      (click)="go(page() - 1)"
+    >
+      ‹ Prev
+    </button>
+
+    @for (slot of slots(); track $index) {
+      @if (slot === null) {
+        <span class="gap">…</span>
+      } @else {
+        <button
+          type="button"
+          class="btn"
+          [class.current]="slot === page()"
+          [attr.aria-current]="slot === page() ? 'page' : null"
+          [disabled]="disabled()"
+          (click)="go(slot)"
+        >
+          {{ slot }}
+        </button>
+      }
+    }
+
+    <button
+      type="button"
+      class="btn"
+      [disabled]="disabled() || page() >= totalPages()"
+      (click)="go(page() + 1)"
+    >
+      Next ›
+    </button>
+  </nav>
+}

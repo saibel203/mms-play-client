@@ -9,11 +9,8 @@ export type ScoreLayout = 'page' | 'horizontal';
 
 export type StaveView = 'tab' | 'score-tab' | 'score';
 
-export interface ScoreInfo {
-  fileName: string;
-  title: string;
-  artist: string;
-}
+/** Colours of the rendered notation; follows the app theme. */
+export type ScoreTheme = 'light' | 'dark';
 
 export interface TrackState {
   index: number;
@@ -35,4 +32,5 @@ export interface ViewOptions {
   layout: ScoreLayout;
   staveView: StaveView;
   zoom: number;
+  theme: ScoreTheme;
 }

@@ -1,0 +1,29 @@
+<ul class="list" [class.busy]="busy()">
+  @for (score of scores(); track score.id) {
+    <!-- the delete button sits next to the link, not inside it: interactive elements must not nest -->
+    <li class="item">
+      <a class="card" [routerLink]="['/player', score.id]">
+        <span class="format">{{ score.format }}</span>
+        <span class="main">
+          <span class="title">{{ score.title }}</span>
+          <span class="artist">{{ score.artist || 'Unknown artist' }}</span>
+        </span>
+        <span class="meta">
+          <span>{{ formatFileSize(score.size) }}</span>
+          <time [attr.datetime]="score.uploadedAt">{{ score.uploadedAt | date: 'mediumDate' }}</time>
+        </span>
+      </a>
+      <button
+        type="button"
+        class="delete"
+        [title]="'Delete ' + score.title"
+        [attr.aria-label]="'Delete ' + score.title"
+        (click)="deleteRequested.emit(score)"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+        </svg>
+      </button>
+    </li>
+  }
+</ul>

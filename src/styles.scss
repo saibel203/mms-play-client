@@ -11,14 +11,59 @@
   --color-accent-contrast: #ffffff;
   --color-accent-soft: #e3ecfd;
   --color-danger: #d64545;
+  --color-danger-soft: rgb(214 69 69 / 8%);
   --color-warning: #e0a100;
+  --color-success: #2bb673;
+  --color-success-soft: #e3f6ec;
+
+  // the top bar stays dark in both themes
+  --color-header-bg: #1d2330;
+  --color-header-text: #ffffff;
+  --color-header-text-muted: rgb(255 255 255 / 70%);
+  --color-header-active-bg: rgb(255 255 255 / 12%);
+  --color-header-brand: #8fb3ff;
+
+  // behind modal dialogs
+  --color-backdrop: rgb(29 35 48 / 45%);
+  // over content that is unavailable, e.g. a score that failed to load
+  --color-scrim: rgb(244 245 247 / 85%);
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 10%);
+  // popovers and dialogs
+  --shadow-lg: 0 12px 40px rgb(16 24 40 / 22%);
 
   --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --header-height: 52px;
+}
+
+// Set on <html> by ColorTheme (and by the inline script in index.html before the app boots).
+// Only colours change: sizes, radii and fonts are shared by both themes.
+:root[data-theme='dark'] {
+  --color-bg: #12151c;
+  --color-surface: #1b1f29;
+  --color-surface-muted: #232836;
+  --color-border: #2f3545;
+  --color-text: #e6e9ef;
+  --color-text-muted: #959cad;
+  --color-accent: #5b8def;
+  --color-accent-contrast: #ffffff;
+  --color-accent-soft: #1f2c47;
+  --color-danger: #f06464;
+  --color-danger-soft: rgb(240 100 100 / 12%);
+  --color-warning: #f0b429;
+  --color-success: #3ccf8e;
+  --color-success-soft: #16352a;
+
+  --color-header-bg: #0b0d12;
+  --color-header-active-bg: rgb(255 255 255 / 10%);
+
+  --color-backdrop: rgb(0 0 0 / 60%);
+  --color-scrim: rgb(18 21 28 / 85%);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%), 0 1px 3px rgb(0 0 0 / 30%);
+  --shadow-lg: 0 12px 40px rgb(0 0 0 / 55%);
 }
 
 *,

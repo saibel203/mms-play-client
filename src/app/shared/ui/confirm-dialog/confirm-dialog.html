@@ -1,0 +1,27 @@
+<dialog #dialog class="dialog" [attr.aria-busy]="busy()" (cancel)="onCancel($event)">
+  <h2 class="heading">{{ heading() }}</h2>
+
+  <div class="body">
+    <ng-content />
+  </div>
+
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  <div class="actions">
+    <!-- focused first, so Enter right after opening does not trigger a destructive action -->
+    <button type="button" class="btn" autofocus [disabled]="busy()" (click)="requestCancel()">
+      {{ cancelLabel() }}
+    </button>
+    <button
+      type="button"
+      class="btn primary"
+      [class.danger]="danger()"
+      [disabled]="busy()"
+      (click)="confirmed.emit()"
+    >
+      {{ confirmLabel() }}
+    </button>
+  </div>
+</dialog>

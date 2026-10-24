@@ -1,0 +1,75 @@
+<button
+  type="button"
+  class="trigger"
+  [class.open]="isOpen()"
+  [class.changed]="percent() !== 100"
+  aria-haspopup="dialog"
+  [attr.aria-expanded]="isOpen()"
+  title="Playback speed"
+  (click)="toggle()"
+>
+  <span class="trigger-label">Speed</span>
+  <span class="trigger-value">{{ percent() }}%</span>
+</button>
+
+@if (isOpen()) {
+  <div class="popover" role="dialog" aria-label="Playback speed">
+    <div class="header">
+      <span class="value">{{ percent() }}%</span>
+      @if (tempo()) {
+        <span class="bpm">♩ = {{ tempo() | number: '1.0-0' }}</span>
+      }
+    </div>
+
+    <div class="presets" role="group" aria-label="Speed presets">
+      @for (preset of presets; track preset) {
+        <button
+          type="button"
+          class="preset"
+          [class.active]="preset === percent()"
+          [attr.aria-pressed]="preset === percent()"
+          (click)="setPercent(preset)"
+        >
+          {{ preset }}%
+        </button>
+      }
+    </div>
+
+    <div class="slider-row">
+      <button
+        type="button"
+        class="step"
+        title="Slower by 1%"
+        [disabled]="percent() <= minPercent"
+        (click)="nudge(-1)"
+      >
+        −
+      </button>
+      <label class="slider">
+        <span class="sr-only">Playback speed, percent</span>
+        <input
+          type="range"
+          [min]="minPercent"
+          [max]="maxPercent"
+          step="1"
+          [value]="percent()"
+          (input)="onSliderInput($event)"
+        />
+      </label>
+      <button
+        type="button"
+        class="step"
+        title="Faster by 1%"
+        [disabled]="percent() >= maxPercent"
+        (click)="nudge(1)"
+      >
+        +
+      </button>
+    </div>
+
+    <div class="scale">
+      <span>{{ minPercent }}%</span>
+      <span>{{ maxPercent }}%</span>
+    </div>
+  </div>
+}

@@ -30,14 +30,7 @@
 </div>
 
 <div class="group">
-  <label class="field">
-    Speed
-    <select [value]="speed()" (change)="onSpeed($event)">
-      @for (preset of speedPresets; track preset) {
-        <option [value]="preset" [selected]="preset === speed()">{{ preset * 100 }}%</option>
-      }
-    </select>
-  </label>
+  <app-speed-control [speed]="speed()" [tempo]="tempo()" (speedChange)="speedChange.emit($event)" />
   @if (tempo()) {
     <span class="badge" title="Current tempo">♩ = {{ tempo() | number: '1.0-0' }}</span>
   }

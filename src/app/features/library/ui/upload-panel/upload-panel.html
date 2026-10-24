@@ -1,0 +1,75 @@
+@let current = draft();
+
+@if (current) {
+  <form class="form" (submit)="onSubmit($event)">
+    <div class="file">
+      <span class="file-name">{{ current.file.name }}</span>
+      <span class="file-size">{{ fileSize() }}</span>
+    </div>
+
+    @if (step() === 'reading') {
+      <p class="status">Reading the file…</p>
+    } @else {
+      <div class="fields">
+        <label class="field">
+          <span>Title</span>
+          <input
+            type="text"
+            name="title"
+            maxlength="256"
+            [value]="current.title"
+            [placeholder]="titlePlaceholder()"
+            [disabled]="isUploading()"
+            (input)="onTitleInput($event)"
+          />
+        </label>
+        <label class="field">
+          <span>Artist</span>
+          <input
+            type="text"
+            name="artist"
+            maxlength="256"
+            placeholder="Unknown"
+            [value]="current.artist"
+            [disabled]="isUploading()"
+            (input)="onArtistInput($event)"
+          />
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn" [disabled]="isUploading()" (click)="cancelled.emit()">
+          Cancel
+        </button>
+        <button type="submit" class="btn primary" [disabled]="isUploading()">
+          {{ isUploading() ? 'Uploading…' : 'Add to library' }}
+        </button>
+      </div>
+    }
+  </form>
+} @else {
+  <app-file-drop-zone
+    [accept]="accept()"
+    label="Drop a Guitar Pro file here or click to browse"
+    hint="Supported: .gp, .gp3, .gp4, .gp5, .gpx, MusicXML. Title and artist are read from the file, you can change them before uploading."
+    (fileSelected)="fileSelected.emit($event)"
+  />
+}
+
+@if (error(); as message) {
+  <div class="notice danger" role="alert">{{ message }}</div>
+}
+
+@if (lastResult(); as result) {
+  <div class="notice" [class.info]="result.isDuplicate" [class.success]="!result.isDuplicate" role="status">
+    <span>
+      @if (result.isDuplicate) {
+        This file is already in the library as <strong>{{ result.score.title }}</strong>.
+      } @else {
+        <strong>{{ result.score.title }}</strong> was added to the library.
+      }
+    </span>
+    <a class="link" [routerLink]="['/player', result.score.id]">Open</a>
+    <button type="button" class="dismiss" title="Dismiss" (click)="resultDismissed.emit()">×</button>
+  </div>
+}

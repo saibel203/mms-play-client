@@ -1,27 +1,20 @@
-@let info = player.info();
+@let score = current.score();
 
 <section class="top">
+  <a class="back" routerLink="/library" title="Back to the library">‹ Library</a>
   <div class="title">
-    @if (hasScore() && info) {
-      <h1>{{ info.title || info.fileName }}</h1>
-      @if (info.artist) {
-        <span class="artist">{{ info.artist }}</span>
+    @if (score) {
+      <h1>{{ score.title }}</h1>
+      @if (score.artist) {
+        <span class="artist">{{ score.artist }}</span>
       }
     } @else {
-      <h1>Tab player</h1>
+      <h1>{{ current.error() ? 'Score unavailable' : 'Loading…' }}</h1>
     }
   </div>
 
-  @if (hasScore()) {
-    @if (!player.isPlayerReady()) {
-      <span class="status">Loading sounds… {{ soundFontPercent() }}%</span>
-    }
-    <app-file-drop-zone
-      [accept]="accept"
-      [compact]="true"
-      label="Open another file"
-      (fileSelected)="onFileSelected($event)"
-    />
+  @if (hasScore() && !player.isPlayerReady()) {
+    <span class="status">Loading sounds… {{ soundFontPercent() }}%</span>
   }
 </section>
 
@@ -72,20 +65,18 @@
   </aside>
 
   <div class="stage">
-    <!-- The viewer is always in the DOM: alphaTab attaches to it once and is reused for every file. -->
-    <app-score-viewer
-      [busy]="player.isRendering() || player.status() === 'loading'"
-      (ready)="onViewerReady($event)"
-    />
+    <!-- The viewer is always in the DOM: alphaTab attaches to it once and is reused for every score. -->
+    <app-score-viewer [busy]="isBusy()" (ready)="onViewerReady($event)" />
 
-    @if (!hasScore()) {
+    @if (current.error(); as error) {
       <div class="empty">
-        <app-file-drop-zone
-          [accept]="accept"
-          label="Drop a Guitar Pro file here or click to browse"
-          hint="Supported: .gp, .gp3, .gp4, .gp5, .gpx, MusicXML. The file stays in your browser and is gone after reload."
-          (fileSelected)="onFileSelected($event)"
-        />
+        <div class="unavailable" role="alert">
+          <p>{{ error }}</p>
+          <div class="actions">
+            <button type="button" class="btn" (click)="current.reload()">Retry</button>
+            <a class="btn primary" routerLink="/library">Back to the library</a>
+          </div>
+        </div>
       </div>
     }
   </div>

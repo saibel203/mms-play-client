@@ -3,25 +3,25 @@ import { AlphaTabApi, model, synth } from '@coderline/alphatab';
 import {
   LoadStatus,
   PlaybackPosition,
-  ScoreInfo,
   ScoreLayout,
+  ScoreTheme,
   StaveView,
   TrackState,
   ViewOptions,
 } from '../models/player.models';
 import {
   DEFAULT_VIEW_OPTIONS,
+  SCORE_THEMES,
   TRACK_PALETTE,
   createAlphaTabSettings,
   toLayoutMode,
   toStaveProfile,
 } from './alphatab.config';
 
-export const SUPPORTED_SCORE_EXTENSIONS = ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.musicxml', '.xml'];
-
 /**
  * Facade over alphaTab: the only place in the app that talks to the engine.
  * Exposes read-only signals for the UI and command methods for user actions.
+ * Takes raw file bytes only: where they come from (API, disk) is not its concern.
  *
  * Provided per page (not in root), so every player instance owns its own engine
  * and everything is torn down when the page is destroyed.
@@ -30,10 +30,11 @@ export const SUPPORTED_SCORE_EXTENSIONS = ['.gp', '.gp3', '.gp4', '.gp5', '.gpx'
 export class ScorePlayer {
   private api: AlphaTabApi | null = null;
   private score: model.Score | null = null;
+  /** File passed to load() before the viewer attached the engine. */
+  private pending: ArrayBuffer | Uint8Array | null = null;
 
   private readonly _status = signal<LoadStatus>('empty');
   private readonly _error = signal<string | null>(null);
-  private readonly _info = signal<ScoreInfo | null>(null);
   private readonly _tracks = signal<TrackState[]>([]);
   private readonly _isRendering = signal(false);
   private readonly _isPlayerReady = signal(false);
@@ -51,7 +52,6 @@ export class ScorePlayer {
 
   readonly status = this._status.asReadonly();
   readonly error = this._error.asReadonly();
-  readonly info = this._info.asReadonly();
   readonly tracks = this._tracks.asReadonly();
   readonly isRendering = this._isRendering.asReadonly();
   readonly isPlayerReady = this._isPlayerReady.asReadonly();
@@ -91,28 +91,31 @@ export class ScorePlayer {
     });
     api.playbackRangeChanged.on((e) => this._hasRange.set(e.playbackRange !== null));
     api.error.on((e) => this.fail(e.message));
+
+    if (this.pending) {
+      const data = this.pending;
+      this.pending = null;
+      this.load(data);
+    }
   }
 
-  async loadFile(file: File): Promise<void> {
+  /** Renders a score file. Safe to call before attach(): the file is loaded once the engine exists. */
+  load(data: ArrayBuffer | Uint8Array): void {
     const api = this.api;
     if (!api) {
-      return;
-    }
-    if (!isSupportedFile(file.name)) {
-      this.fail(`Unsupported file type. Use: ${SUPPORTED_SCORE_EXTENSIONS.join(', ')}`);
+      this.pending = data;
       return;
     }
 
     this._status.set('loading');
     this._error.set(null);
-    this._info.set({ fileName: file.name, title: '', artist: '' });
     api.stop();
     this.clearRange();
 
     try {
-      const data = new Uint8Array(await file.arrayBuffer());
+      const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
       // Render only the first track initially, like Songsterr; audio plays all tracks.
-      if (!api.load(data, [0])) {
+      if (!api.load(bytes, [0])) {
         this.fail('alphaTab could not read this file.');
       }
     } catch (e) {
@@ -229,12 +232,16 @@ export class ScorePlayer {
     this.updateView({ zoom });
   }
 
+  setTheme(theme: ScoreTheme): void {
+    if (theme !== this._view().theme) {
+      this.updateView({ theme });
+    }
+  }
+
   // --- Internals -----------------------------------------------------------------
 
   private onScoreLoaded(score: model.Score): void {
     this.score = score;
-    const fileName = this._info()?.fileName ?? '';
-    this._info.set({ fileName, title: score.title, artist: score.artist });
     this._tracks.set(
       score.tracks.map((track) => ({
         index: track.index,
@@ -268,6 +275,8 @@ export class ScorePlayer {
     api.settings.display.layoutMode = toLayoutMode(view.layout);
     api.settings.display.staveProfile = toStaveProfile(view.staveView);
     api.settings.display.scale = view.zoom;
+    // resources hold Color objects; fillFromJson parses the same JSON used at creation
+    api.settings.fillFromJson({ display: { resources: SCORE_THEMES[view.theme] } });
     api.updateSettings();
     if (this.score) {
       api.render();
@@ -297,9 +306,4 @@ export class ScorePlayer {
     this._isPlayerReady.set(false);
     this._isPlaying.set(false);
   }
-}
-
-function isSupportedFile(fileName: string): boolean {
-  const name = fileName.toLowerCase();
-  return SUPPORTED_SCORE_EXTENSIONS.some((ext) => name.endsWith(ext));
 }

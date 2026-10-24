@@ -1,0 +1,62 @@
+app-score-viewer {
+  // Playback cursor & selection colours (drawn by alphaTab as DOM elements).
+  --score-cursor-bar: rgb(255 242 0 / 25%);
+  --score-cursor-beat: rgb(47 111 237 / 85%);
+  --score-selection: rgb(47 111 237 / 12%);
+  --score-highlight: #2f6fed;
+
+  position: relative;
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+
+  .score-viewer__viewport {
+    height: 100%;
+    overflow: auto;
+  }
+
+  .score-viewer__surface {
+    min-height: 100%;
+  }
+
+  .score-viewer__overlay {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--color-header-bg);
+    color: var(--color-header-text);
+    font-size: 12px;
+    pointer-events: none;
+  }
+
+  .at-cursor-bar {
+    background: var(--score-cursor-bar);
+  }
+
+  .at-cursor-beat {
+    width: 3px;
+    background: var(--score-cursor-beat);
+  }
+
+  .at-selection div {
+    background: var(--score-selection);
+  }
+
+  .at-highlight * {
+    fill: var(--score-highlight);
+    stroke: var(--score-highlight);
+  }
+}
+
+// the notation itself is recoloured through alphaTab (SCORE_THEMES), these are the DOM overlays
+:root[data-theme='dark'] app-score-viewer {
+  --score-cursor-bar: rgb(255 242 0 / 10%);
+  --score-cursor-beat: rgb(91 141 239 / 90%);
+  --score-selection: rgb(91 141 239 / 22%);
+  --score-highlight: #7aa5ff;
+}

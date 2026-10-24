@@ -1,0 +1,89 @@
+@let filter = library.filter();
+
+<div class="page">
+  <section class="top">
+    <div class="title">
+      <h1>Library</h1>
+      @if (!library.isFirstLoad()) {
+        <span class="count">
+          {{ library.totalCount() }} {{ library.totalCount() === 1 ? 'score' : 'scores' }}
+        </span>
+      }
+    </div>
+    <app-search-box
+      class="search"
+      placeholder="Search by title, artist or file name"
+      [value]="filter.search"
+      (termChange)="onSearch($event)"
+    />
+  </section>
+
+  <app-upload-panel
+    [step]="uploader.step()"
+    [draft]="uploader.draft()"
+    [error]="uploader.error()"
+    [lastResult]="uploader.lastResult()"
+    [accept]="accept"
+    (fileSelected)="onFileSelected($event)"
+    (draftChange)="onDraftChange($event)"
+    (submitted)="onUploadSubmitted()"
+    (cancelled)="uploader.cancel()"
+    (resultDismissed)="uploader.dismissResult()"
+  />
+
+  @if (library.error(); as error) {
+    <div class="error" role="alert">
+      <span>{{ error }}</span>
+      <button type="button" class="retry" (click)="library.reload()">Retry</button>
+    </div>
+  }
+
+  @if (library.isFirstLoad()) {
+    <p class="placeholder">Loading scores…</p>
+  } @else if (library.scores().length) {
+    <app-score-list
+      [scores]="library.scores()"
+      [busy]="library.isLoading()"
+      (deleteRequested)="library.requestDelete($event)"
+    />
+  } @else if (!library.error()) {
+    <p class="placeholder">
+      @if (filter.search) {
+        Nothing matches “{{ filter.search }}”.
+      } @else if (filter.page > 1) {
+        This page is empty.
+      } @else {
+        The library is empty. Upload the first score above.
+      }
+    </p>
+  }
+
+  <app-pagination
+    [page]="filter.page"
+    [totalPages]="library.totalPages()"
+    [disabled]="library.isLoading()"
+    (pageChange)="onPageChange($event)"
+  />
+
+  @let target = library.deleteTarget();
+  <app-confirm-dialog
+    heading="Delete score?"
+    [confirmLabel]="library.isDeleting() ? 'Deleting…' : 'Delete'"
+    [danger]="true"
+    [open]="!!target"
+    [busy]="library.isDeleting()"
+    [error]="library.deleteError()"
+    (confirmed)="onDeleteConfirmed()"
+    (cancelled)="library.cancelDelete()"
+  >
+    @if (target) {
+      <p>
+        <strong>{{ target.title }}</strong>
+        @if (target.artist) {
+          by {{ target.artist }}
+        }
+        will be removed from the library together with its file. This cannot be undone.
+      </p>
+    }
+  </app-confirm-dialog>
+</div>

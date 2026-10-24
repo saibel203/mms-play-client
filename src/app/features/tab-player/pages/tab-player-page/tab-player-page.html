@@ -1,0 +1,83 @@
+@let score = current.score();
+
+<section class="top">
+  <a class="back" routerLink="/library" title="Back to the library">‹ Library</a>
+  <div class="title">
+    @if (score) {
+      <h1>{{ score.title }}</h1>
+      @if (score.artist) {
+        <span class="artist">{{ score.artist }}</span>
+      }
+    } @else {
+      <h1>{{ current.error() ? 'Score unavailable' : 'Loading…' }}</h1>
+    }
+  </div>
+
+  @if (hasScore() && !player.isPlayerReady()) {
+    <span class="status">Loading sounds… {{ soundFontPercent() }}%</span>
+  }
+</section>
+
+@if (player.error(); as error) {
+  <div class="error" role="alert">{{ error }}</div>
+}
+
+<app-transport-bar
+  [canPlay]="player.canPlay()"
+  [isPlaying]="player.isPlaying()"
+  [position]="player.position()"
+  [tempo]="hasScore() ? player.tempo() : 0"
+  [speed]="player.speed()"
+  [isLooping]="player.isLooping()"
+  [hasRange]="player.hasRange()"
+  [metronome]="player.metronome()"
+  [countIn]="player.countIn()"
+  [masterVolume]="player.masterVolume()"
+  (playPause)="player.playPause()"
+  (stop)="player.stop()"
+  (seek)="player.seek($event)"
+  (speedChange)="player.setSpeed($event)"
+  (loopChange)="player.setLooping($event)"
+  (clearRange)="player.clearRange()"
+  (metronomeChange)="player.setMetronome($event)"
+  (countInChange)="player.setCountIn($event)"
+  (masterVolumeChange)="player.setMasterVolume($event)"
+/>
+
+<div class="body">
+  <aside class="sidebar">
+    @if (hasScore()) {
+      <app-track-mixer
+        [tracks]="player.tracks()"
+        (visibilityToggled)="player.toggleTrackVisible($event)"
+        (showOnly)="player.showOnlyTrack($event)"
+        (muteChanged)="player.setTrackMute($event.index, $event.value)"
+        (soloChanged)="player.setTrackSolo($event.index, $event.value)"
+        (volumeChanged)="player.setTrackVolume($event.index, $event.volume)"
+      />
+    }
+    <app-view-controls
+      [view]="player.view()"
+      (layoutChange)="player.setLayout($event)"
+      (staveViewChange)="player.setStaveView($event)"
+      (zoomChange)="player.setZoom($event)"
+    />
+  </aside>
+
+  <div class="stage">
+    <!-- The viewer is always in the DOM: alphaTab attaches to it once and is reused for every score. -->
+    <app-score-viewer [busy]="isBusy()" (ready)="onViewerReady($event)" />
+
+    @if (current.error(); as error) {
+      <div class="empty">
+        <div class="unavailable" role="alert">
+          <p>{{ error }}</p>
+          <div class="actions">
+            <button type="button" class="btn" (click)="current.reload()">Retry</button>
+            <a class="btn primary" routerLink="/library">Back to the library</a>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

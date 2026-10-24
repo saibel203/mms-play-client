@@ -1,0 +1,145 @@
+:host {
+  position: relative;
+  display: inline-flex;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+
+  &:hover,
+  &.open {
+    border-color: var(--color-accent);
+  }
+
+  &.changed .trigger-value {
+    color: var(--color-accent);
+  }
+}
+
+.trigger-label {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.trigger-value {
+  min-width: 38px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 300px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-50%);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.value {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.bpm {
+  color: var(--color-text-muted);
+  font-variant-emoji: text;
+  font-variant-numeric: tabular-nums;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slider {
+  display: flex;
+  flex: 1;
+
+  input {
+    width: 100%;
+    accent-color: var(--color-accent);
+  }
+}
+
+.step {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-accent);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+.scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -6px;
+  padding: 0 36px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.preset {
+  height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+
+  &:hover:not(.active) {
+    border-color: var(--color-accent);
+  }
+
+  &.active {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    font-weight: 600;
+  }
+}
